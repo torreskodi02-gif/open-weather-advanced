@@ -26,13 +26,27 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Install dependencies
+      - name: Create full Flutter Android project
+        run: |
+          flutter create --project-name open_weather --org com.openweather --platforms android temp
+          # Keep our custom code
+          rm -rf temp/lib
+          cp -r lib temp/
+          cp pubspec.yaml temp/
+          cp -r .github temp/ 2>/dev/null || true
+          # Move everything up
+          shopt -s dotglob
+          rm -rf android ios web linux macos windows
+          mv temp/* temp/.* . 2>/dev/null || true
+          rmdir temp 2>/dev/null || true
+
+      - name: Get dependencies
         run: flutter pub get
 
-      - name: Build APK
+      - name: Build release APK
         run: flutter build apk --release --split-per-abi
 
-      - name: Upload APK artifacts
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: open-weather-apk
